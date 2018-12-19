@@ -1,2 +1,2 @@
 # sw-descargamasiva-dotnet
-Descarga masiva lenguaje C#
+Ejempolo de consumo para descarga masiva en .NET
