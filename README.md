@@ -1,2 +1,4 @@
 # sw-descargamasiva-dotnet
-Ejempolo de consumo para descarga masiva en .NET
+Descarga masiva para servicios SAT en lenguaje C#
+
+
