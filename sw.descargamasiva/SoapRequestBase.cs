@@ -1,6 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Xml;
 
 namespace sw.descargamasiva
@@ -9,41 +12,20 @@ namespace sw.descargamasiva
     {
         protected string xml;
 
-
         protected HttpWebRequest webRequest;
 
-        /// <summary>
-        /// Genera el constructor con los datos esenciales para enviar enviar el XML, mas no genera el XML
-        /// </summary>
-        /// <param name="NameToFindURL">Nombre del endpoint del archivo de configuración</param>
-        /// <param name="SOAPAction">URL con información del metodo que ejecutara</param>
-        /// <param name="Digest">Función enviada para ejecutar la operación de digestión</param>
-        /// <param name="Sign">Función enviada para ejecutar la operación de timbrado</param>
         protected SoapRequestBase(string url, string SOAPAction)
         {
             this.xml = null;
             webRequest = WebRequest(url, SOAPAction);
         }
 
-        /// <summary>
-        /// Genera el constructor con los datos esenciales para enviar enviar el XML, mas no genera el XML
-        /// </summary>
-        /// <param name="NameToFindURL">Nombre del endpoint del archivo de configuración</param>
-        /// <param name="SOAPAction">URL con información del metodo que ejecutara</param>
-        /// <param name="Digest">Función enviada para ejecutar la operación de digestión</param>
-        /// <param name="Sign">Función enviada para ejecutar la operación de timbrado</param>
         protected SoapRequestBase(Uri URL, string SOAPAction)
         {
             this.xml = null;
             webRequest = WebRequest(URL.ToString(), SOAPAction);
         }
 
-        /// <summary>
-        /// Envia el xml formado mediante una subclase
-        /// </summary>
-        /// Lanzada cuando no se proporcionan valores a la propiedad XML o cuando ocurre un problema de comunicación
-        /// </exception>
-        /// <returns>XML optenido del Web Response</returns>
         public string Send(string autorization = null)
         {
             try
@@ -86,13 +68,6 @@ namespace sw.descargamasiva
 
         public abstract string GetResult(XmlDocument xmlDoc);
  
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="URL"></param>
-        /// <param name="SOAPAction"></param>
-        /// <returns></returns>
         private static HttpWebRequest WebRequest(string URL, string SOAPAction, int maxTimeMilliseconds = 120000)
         {
             HttpWebRequest webRequest = (HttpWebRequest)HttpWebRequest.Create(URL);
@@ -101,6 +76,27 @@ namespace sw.descargamasiva
             webRequest.ContentType = "text/xml; charset=utf-8";
             webRequest.Headers.Add("SOAPAction: " + SOAPAction);
             return webRequest;
+        }
+
+        public string CreateDigest(string sourceData)
+        {
+            byte[] data = GetBytes(sourceData);
+            return System.Convert.ToBase64String(HashAlgorithm.Create("SHA1").ComputeHash(data));
+        }
+        public string Sign(string sourceData, X509Certificate2 certificate)
+        {
+            byte[] data = GetBytes(sourceData);
+            byte[] signature = null;
+
+            using (RSA rsaCryptoServiceProvider = certificate.GetRSAPrivateKey())
+            {
+                signature = rsaCryptoServiceProvider.SignData(data, HashAlgorithmName.SHA1, RSASignaturePadding.Pkcs1);
+            }
+            return System.Convert.ToBase64String(signature);
+        }
+        private byte[] GetBytes(string sourceData)
+        {
+            return Encoding.Default.GetBytes(sourceData);
         }
     }
 }

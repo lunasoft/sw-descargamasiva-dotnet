@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace sw.descargamasiva
@@ -29,7 +24,7 @@ namespace sw.descargamasiva
                                             "<u:Created>" + created + "</u:Created>" +
                                             "<u:Expires>" + expires + "</u:Expires>" +
                                          "</u:Timestamp>";
-            string digest = System.Convert.ToBase64String(Digest(System.Text.Encoding.Default.GetBytes(canonicalTimestamp)));
+            string digest = CreateDigest(canonicalTimestamp);
             string canonicalSignedInfo = @"<SignedInfo xmlns=""http://www.w3.org/2000/09/xmldsig#"">" +
                                             @"<CanonicalizationMethod Algorithm=""http://www.w3.org/2001/10/xml-exc-c14n#""></CanonicalizationMethod>" +
                                             @"<SignatureMethod Algorithm=""http://www.w3.org/2000/09/xmldsig#rsa-sha1""></SignatureMethod>" +
@@ -41,7 +36,7 @@ namespace sw.descargamasiva
                                                "<DigestValue>" + digest + "</DigestValue>" +
                                             "</Reference>" +
                                          "</SignedInfo>";
-            string signature = System.Convert.ToBase64String(Sign(System.Text.Encoding.Default.GetBytes(canonicalSignedInfo), certificate));
+            string signature = Sign(canonicalSignedInfo, certificate);
             string soap_request = @"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:u=""http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"">" +
                                     @"<s:Header>" +
                                      @"<o:Security s:mustUnderstand=""1"" xmlns:o=""http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"">" +
@@ -81,20 +76,6 @@ namespace sw.descargamasiva
             return soap_request;
         }
         #endregion
-        public byte[] Digest(byte[] sourceData)
-        {
-            return HashAlgorithm.Create("SHA1").ComputeHash(sourceData);
-        }
-        public byte[] Sign(byte[] sourceData, X509Certificate2 certificate)
-        {
-            byte[] signature = null;
-
-            using (RSA rsaCryptoServiceProvider = certificate.GetRSAPrivateKey())
-            {
-                signature = rsaCryptoServiceProvider.SignData(sourceData, HashAlgorithmName.SHA1, RSASignaturePadding.Pkcs1);
-            }
-            return signature;
-        }
 
         public override string GetResult(XmlDocument xmlDoc)
         {
