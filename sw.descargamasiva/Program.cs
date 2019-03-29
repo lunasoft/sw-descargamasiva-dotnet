@@ -32,8 +32,9 @@ namespace sw.descargamasiva
 
         static string RfcEmisor = "";
         static string RfcReceptor = "";
-        static string FechaInicial = "2018-12-01";
-        static string FechaFinal = "2018-12-02";
+        static string RfcSolicitante = "";
+        static string FechaInicial = "2019-01-01";
+        static string FechaFinal = "2019-03-31";
 
 
         static void Main(string[] args)
@@ -94,14 +95,14 @@ namespace sw.descargamasiva
         private static string ValidarSolicitud(X509Certificate2 certifcate, string autorization, string idSolicitud)
         {
             VerificaSolicitud verifica = new VerificaSolicitud(urlVerificarSolicitud, urlVerificarSolicitudAction);
-            string xmlVerifica = verifica.Generate(certifcate, RfcEmisor, idSolicitud);
+            string xmlVerifica = verifica.Generate(certifcate, RfcSolicitante, idSolicitud);
             return verifica.Send(autorization);
         }
 
         private static string GenerarSolicitud(X509Certificate2 certifcate, string autorization)
         {
             Solicitud solicitud = new Solicitud(urlSolicitud, urlSolicitudAction);
-            string xmlSolicitud = solicitud.Generate(certifcate, RfcEmisor, RfcReceptor, RfcEmisor, FechaInicial, FechaFinal);
+            string xmlSolicitud = solicitud.Generate(certifcate, RfcEmisor, RfcReceptor, RfcSolicitante, FechaInicial, FechaFinal);
             return solicitud.Send(autorization);
         }
 
