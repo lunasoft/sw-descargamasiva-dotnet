@@ -30,15 +30,13 @@ namespace sw.descargamasiva
             var xmlRequest = Serializer.SerializeDocumentToXml(request);
             var signedRequest = Signer.SingXml(
                 verifyRequestDownloadParameters.Certificate, 
-                verifyRequestDownloadParameters.Password,
-                xmlRequest,
-                "VerificaSolicitudDescargaMasivaTercero");
+                xmlRequest);
             
             return signedRequest;
         }
         
 
-        public async Task<RespuestaVerificaSolicitudDescMasTercero> Call(string xml, string authorization)
+        public RespuestaVerificaSolicitudDescMasTercero Call(string xml, string authorization)
         {
             var request = Serializer.Deserialize<VerificaSolicitudDescargaMasivaTercero>(xml);
             
@@ -51,7 +49,7 @@ namespace sw.descargamasiva
                 }
             };
 
-            return await _client.VerificaSolicitudDescargaAsync(request);
+            return _client.VerificaSolicitudDescargaAsync(request).Result;
         }
         
         private VerificaSolicitudDescargaServiceClient GetClient(string endpoint)

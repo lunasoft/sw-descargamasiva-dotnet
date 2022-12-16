@@ -5,7 +5,7 @@ namespace sw.descargamasiva.Models
     public class RequestDownloadParameters : IParameters
     {
         public RequestDownloadParameters(
-            X509Certificate2 certificate, string password,
+            X509Certificate2 certificate,
             string rfcEmisor, string[] rfcReceptor, 
             string rfcSolicitante, string fechaInicial = "", string fechaFinal = "", string tipoSolicitud = "CFDI",
             string rfcTpAccount = "", string cfdiType = "", string cfdiComplement = "")
@@ -20,10 +20,8 @@ namespace sw.descargamasiva.Models
             CFDIType = cfdiType;
             CFDIComplement = cfdiComplement;
             Certificate = certificate;
-            Password = password;
         }
         public readonly X509Certificate2 Certificate;
-        public readonly string Password;
         public readonly string RfcEmisor;
         public readonly string[] RfcReceptor;
         public readonly string RfcSolicitante;

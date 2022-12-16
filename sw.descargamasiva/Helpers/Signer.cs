@@ -8,11 +8,10 @@ namespace sw.descargamasiva
 {
     public static class Signer
     {
-        public static string SingXml(X509Certificate2 cert, object password, string xmlRequest, string sigLocation)
+        public static string SingXml(X509Certificate2 cert, string xmlRequest)
         {
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xmlRequest);
-            
             CspParameters rsaParameters = new CspParameters();
             rsaParameters.Flags = CspProviderFlags.UseMachineKeyStore;
             RSACryptoServiceProvider key = new RSACryptoServiceProvider(cert.PrivateKey.KeySize, rsaParameters);
@@ -29,7 +28,15 @@ namespace sw.descargamasiva
             signedXml.KeyInfo = keyInfo;
             signedXml.AddReference(reference);
             signedXml.ComputeSignature();
-            return signedXml.GetXml().OuterXml;
+            var xmlDigitalSignature =  signedXml.GetXml();
+            doc.DocumentElement?.AppendChild(doc.ImportNode(xmlDigitalSignature, true));
+
+            if (doc.FirstChild is XmlDeclaration)  
+            {
+                doc.RemoveChild(doc.FirstChild);
+            }
+
+            return doc.OuterXml;
         }
     }
 }

@@ -40,12 +40,24 @@ namespace sw.descargamasiva
                 FullXmlTextWriter xmlTextWriter = new FullXmlTextWriter(memoryStream, Encoding.UTF8);
                 xs.Serialize(xmlTextWriter, obj);
                 memoryStream = (MemoryStream)xmlTextWriter.BaseStream;
-                return new UTF8Encoding().GetString(memoryStream.ToArray());
+                return RemoveInvalidCharacters(new UTF8Encoding().GetString(memoryStream.ToArray()));
             }
             catch
             {
                 return string.Empty;
             }
+        }
+        
+        public static string RemoveInvalidCharacters(string xmlInvoice)
+        {
+            xmlInvoice = xmlInvoice.Replace("\r\n", "");
+            xmlInvoice = xmlInvoice.Replace("\r", "");
+            xmlInvoice = xmlInvoice.Replace("\n", "");
+            xmlInvoice = xmlInvoice.Replace(@"<?xml version=""1.0"" encoding=""utf-16""?>", @"<?xml version=""1.0"" encoding=""utf-8""?>").Trim();
+            xmlInvoice = xmlInvoice.Replace("﻿", "");
+            xmlInvoice = xmlInvoice.Replace(@"
+", "");
+            return xmlInvoice;
         }
     }
 }

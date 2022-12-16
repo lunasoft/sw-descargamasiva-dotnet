@@ -12,7 +12,6 @@ namespace sw.descargamasiva
         static string password = "";
 
         static string urlAutentica = "https://cfdidescargamasivasolicitud.clouda.sat.gob.mx/Autenticacion/Autenticacion.svc";
-
         static string urlSolicitud = "https://cfdidescargamasivasolicitud.clouda.sat.gob.mx/SolicitaDescargaService.svc";
 
         static string urlVerificarSolicitud = "https://cfdidescargamasivasolicitud.clouda.sat.gob.mx/VerificaSolicitudDescargaService.svc";
@@ -23,30 +22,35 @@ namespace sw.descargamasiva
         static string RfcEmisor = ""; 
         static string RfcSolicitante = "";
         static string[] RfcReceptor = new []{ "" };
-        static string FechaInicial = "2018-12-01";
-        static string FechaFinal = "2018-12-02";
+        static string FechaInicial = "2022-12-01";
+        static string FechaFinal = "2022-12-02";
         
         static void Main(string[] args)
         {
             //Obtener Token
             string token = ObtenerToken();
-            string autorization = String.Format("WRAP access_token=\"{0}\"", HttpUtility.UrlDecode(token));
             Console.WriteLine("Token: " + token);
-
+            Console.WriteLine(" ");
+            
             //Generar Solicitud
-            string idSolicitud = GenerarSolicitud(autorization);
+            string idSolicitud = GenerarSolicitud(token); 
             Console.WriteLine("IdSolicitud: " + idSolicitud);
+            Console.WriteLine(" ");
 
             //Validar Solicitud
-            string idPaquete = VerificarSolicitud(autorization, idSolicitud);
-            Console.WriteLine("IdPaquete: " + idPaquete);
+            var paquetes = VerificarSolicitud(token, idSolicitud);
+            Console.WriteLine("IdPaquete: " + paquetes.ToString());
+            Console.WriteLine(" ");
 
-            if (!string.IsNullOrEmpty(idPaquete))
+            //Descargar paquetes de solicitud
+            if (paquetes.Length != 0)
             {
-                //Descargar Solicitud
-                string descargaResponse = DescargarSolicitud(autorization, idPaquete);
-
-                GuardarSolicitud(idPaquete, descargaResponse);
+                foreach (var paqueteId in paquetes)
+                {
+                    string descargaResponse = DescargarSolicitud(token, paqueteId);
+                    GuardarSolicitud(paqueteId, descargaResponse);
+                }
+                
             }
             Console.ReadLine();
         }
@@ -63,35 +67,42 @@ namespace sw.descargamasiva
             var service = new AuthenticaV2(urlAutentica);
             var parameters = new AuthenticaParameters(pfx, password);
             service.Generate(parameters); 
-            var response = service.Call().Result;
-            return response;
+            var response = service.Call();
+            string authorization = String.Format("WRAP access_token=\"{0}\"", HttpUtility.UrlDecode(response));
+            return authorization;
         }
         
         private static string GenerarSolicitud(string autorization)
         {
             var certificate = ObtenerX509Certificado(pfx);
             var verifyService = new GenerarSolicitudV2(urlSolicitud);
-            var parameters = new RequestDownloadParameters(certificate, password, RfcEmisor, RfcReceptor, RfcEmisor, FechaInicial, FechaFinal);
+            var parameters = new RequestDownloadParameters(certificate, RfcEmisor, RfcReceptor, RfcEmisor, FechaInicial, FechaFinal, "Metadata");
             var requestXml = verifyService.Generate(parameters);
-            var response = verifyService.Call(requestXml, autorization).Result;
-            return Serializer.SerializeDocumentToXml(response);
+            var response = verifyService.Call(requestXml, autorization);
+            Console.WriteLine("------ SOLICITA RESPONSE ---------------");
+            Console.WriteLine(Serializer.SerializeDocumentToXml(response));
+            Console.WriteLine("------ SOLICITA RESPONSE ---------------");
+            return response.IdSolicitud;
         }
-        
-        private static string VerificarSolicitud(string autorization, string idSolicitud)
+
+        private static string [] VerificarSolicitud(string autorization, string idSolicitud)
         {
             var certificate = ObtenerX509Certificado(pfx);
             var verifyService = new VerificaSolicitudV2(urlVerificarSolicitud);
-            var parameters = new VerifyRequestDownloadParameters(certificate, password, RfcSolicitante, idSolicitud);
+            var parameters = new VerifyRequestDownloadParameters(certificate, RfcSolicitante, idSolicitud);
             var requestXml = verifyService.Generate(parameters);
-            var response = verifyService.Call(requestXml, autorization).Result;
-            return Serializer.SerializeDocumentToXml(response);
+            var response = verifyService.Call(requestXml, autorization);
+            Console.WriteLine("------ VERIFICA RESPONSE ---------------");
+            Console.WriteLine(Serializer.SerializeDocumentToXml(response));
+            Console.WriteLine("------ VERIFICA RESPONSE ---------------");
+            return response.IdsPaquetes ?? new string []{};
         }
 
         private static string DescargarSolicitud(string autorization, string idPaquete)
         {
             var certifcate = ObtenerX509Certificado(pfx);
             DescargarSolicitud descargarSolicitud = new DescargarSolicitud(urlDescargarSolicitud, urlDescargarSolicitudAction);
-            string xmlDescarga = descargarSolicitud.Generate(certifcate, RfcEmisor, idPaquete);
+            descargarSolicitud.Generate(certifcate, RfcEmisor, idPaquete);
             return descargarSolicitud.Send(autorization);
         }
         

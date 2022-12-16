@@ -6,6 +6,6 @@ namespace sw.descargamasiva
 
     {
         string Generate(IParameters parameters);
-        Task<T> Call(string xml = "", string authorization = "");
+        T Call(string xml = "", string authorization = "");
     }
 }

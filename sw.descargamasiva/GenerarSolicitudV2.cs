@@ -49,27 +49,24 @@ namespace sw.descargamasiva
                string xmlRequest = Serializer.SerializeDocumentToXml(request);
                string signedRequest = Signer.SingXml(
                    downloadParameters.Certificate,
-                   downloadParameters.Password,
-                   xmlRequest,
-                   "SolicitudDescargaMasivaTercero");
+                   xmlRequest);
 
                return signedRequest;
         }
 
-        public async Task<RespuestaSolicitudDescMasTercero> Call(string xml, string authorization)
+        public RespuestaSolicitudDescMasTercero Call(string xml, string authorization)
         {
             var request = Serializer.Deserialize<SolicitudDescargaMasivaTercero>(xml);
             using OperationContextScope scope = new OperationContextScope(_client.InnerChannel);
-            OperationContext.Current.OutgoingMessageProperties[HttpRequestMessageProperty.Name] =
-                new HttpRequestMessageProperty()
+            OperationContext.Current.OutgoingMessageProperties[HttpRequestMessageProperty.Name] = new HttpRequestMessageProperty()
+            {
+                Headers =
                 {
-                    Headers =
-                    {
-                        {"Authorization", authorization}
-                    }
-                };
+                    { "Authorization", authorization}
+                }
+            };
             
-            return await _client.SolicitaDescargaAsync(request);
+            return _client.SolicitaDescargaAsync(request).Result;
         }
         
         private SolicitaDescargaServiceClient GetClient(string endpoint)

@@ -30,9 +30,9 @@ namespace sw.descargamasiva
         }
         
 
-        public async Task<string> Call(string xml = "", string authorization = "")
+        public string Call(string xml = "", string authorization = "")
         {
-            return await _client.AutenticaAsync();
+            return _client.AutenticaAsync().Result;
         }
         
         private BasicHttpBinding GetBinding()
