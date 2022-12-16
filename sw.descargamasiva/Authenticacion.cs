@@ -4,9 +4,9 @@ using System.Xml;
 
 namespace sw.descargamasiva
 {
-    internal class Autenticacion : SoapRequestBase
+    internal class Authenticacion : SoapRequestBase
     {
-        public Autenticacion(string url, string action)
+        public Authenticacion(string url, string action)
            : base(url, action)
         {
         }
