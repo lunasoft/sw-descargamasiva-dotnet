@@ -100,6 +100,9 @@
       <LastGenOutput>VerificaSolicitudDescargaService1.cs</LastGenOutput>
     </None>
     <None Include="packages.config" />
+    <None Include="Resources\pfx.pfx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Connected Services" />
